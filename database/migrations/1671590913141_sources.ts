@@ -9,7 +9,8 @@ export default class extends BaseSchema {
       table.string('name', 30).notNullable();
       table.string('image', 100).nullable();
       table.string('url', 30).notNullable();
-      table.dateTime('deleted_at', { useTz: true });
+      table.integer('articleSourcesCount').unsigned().notNullable();
+      table.dateTime('deletedAt', { useTz: true });
     });
   }
 

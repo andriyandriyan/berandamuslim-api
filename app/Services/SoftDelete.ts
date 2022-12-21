@@ -2,13 +2,13 @@ import { BaseModel, LucidRow, ModelQueryBuilderContract } from '@ioc:Adonis/Luci
 import { DateTime } from 'luxon';
 
 export const softDeleteQuery = (query: ModelQueryBuilderContract<typeof BaseModel>) => {
-  query.whereNull(`${query.model.table}.deleted_at`);
+  query.whereNull(`${query.model.table}.deletedAt`);
 };
 
 export const softDeletePaginateQuery = ([countQuery]: [
   ModelQueryBuilderContract<typeof BaseModel>
 ]) => {
-  countQuery.whereNull(`${countQuery.model.table}.deleted_at`);
+  countQuery.whereNull(`${countQuery.model.table}.deletedAt`);
 };
 
 export const softDelete = async (row: LucidRow, column = 'deletedAt') => {
