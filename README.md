@@ -1,1 +1,1 @@
-# API Daily Muslim
+# API Muslim Feed
