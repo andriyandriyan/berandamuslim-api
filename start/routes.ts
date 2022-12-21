@@ -23,3 +23,8 @@ import Route from '@ioc:Adonis/Core/Route';
 Route.get('/', async () => {
   return { hello: 'world' };
 });
+
+Route.group(() => {
+  Route.get('articles/fetch', 'ArticlesController.fetchArticle');
+  Route.resource('articles', 'ArticlesController').apiOnly();
+}).prefix('v1');
