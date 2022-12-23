@@ -32,6 +32,7 @@ export default class ArticlesController {
               ...config,
               params: {
                 _fields: ['id'],
+                per_page: 1,
               },
             });
             const total = headers['x-wp-total'] || 0;
@@ -39,7 +40,9 @@ export default class ArticlesController {
             if (total === articlesCount) {
               return resolve();
             }
-            const page = articlesCount / perPage + 1;
+            const lastPage = Math.ceil(articlesCount / perPage);
+            const mod = articlesCount % perPage;
+            const page = mod > 0 ? lastPage : lastPage + 1;
             await source
               .merge({ articleSourcesCount: Number(total) })
               .useTransaction(trx)
@@ -57,7 +60,7 @@ export default class ArticlesController {
                 },
               });
               await Article.createMany(
-                data.map(datum => ({
+                data.slice(mod).map(datum => ({
                   title: datum.title.rendered,
                   image: datum._embedded?.['wp:featuredmedia'][0]?.source_url || null,
                   sourceUrl: datum.link,
