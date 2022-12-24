@@ -8,9 +8,24 @@ import { DateTime } from 'luxon';
 
 export default class ArticlesController {
   public async index({ request }: HttpContextContract) {
+    const search: string = request.input('search', '');
     const page = request.input('page', 1);
     const perPage = request.input('perPage', 20);
-    const data = await Article.query().preload('source').paginate(page, perPage);
+    const data = await Article.query()
+      .select('id', 'title', 'image', 'publishedAt', 'sourceId')
+      .where(query => {
+        if (search) {
+          query.whereRaw('fts @@ to_tsquery(:lang, :search)', {
+            lang: 'indonesian',
+            search: search.split(' ').join(' & '),
+          });
+        }
+      })
+      .orderBy('publishedAt', 'desc')
+      .preload('source', query => {
+        query.select('id', 'name', 'image');
+      })
+      .paginate(page, perPage);
     return data;
   }
 
