@@ -29,6 +29,11 @@ export default class ArticlesController {
     return data;
   }
 
+  public async show({ request, response }: HttpContextContract) {
+    const data = await Article.findOrFail(request.param('id'));
+    response.redirect().toPath(data.sourceUrl);
+  }
+
   public async fetchArticle() {
     const perPage = 20;
     const sources = await Source.query().withCount('articles');
