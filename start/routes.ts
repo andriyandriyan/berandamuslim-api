@@ -25,7 +25,7 @@ Route.get('/', async () => {
 });
 
 Route.group(() => {
-  Route.get('articles/fetch', 'ArticlesController.fetchArticle');
+  Route.get('scrapers/articles', 'ScrapersController.articles');
   Route.get('articles', 'ArticlesController.index');
   Route.get('articles/:id', 'ArticlesController.show');
 }).prefix('v1');
