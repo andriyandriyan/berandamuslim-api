@@ -28,4 +28,6 @@ Route.group(() => {
   Route.get('scrapers/articles', 'ScrapersController.articles');
   Route.get('articles', 'ArticlesController.index');
   Route.get('articles/:id', 'ArticlesController.show');
+  Route.get('cities', 'CitiesController.index');
+  Route.get('sholat-schedules', 'SholatSchedulesController.index');
 }).prefix('v1');
