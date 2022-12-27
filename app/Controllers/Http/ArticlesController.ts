@@ -12,13 +12,13 @@ export default class ArticlesController {
         if (search) {
           query.whereRaw('fts @@ to_tsquery(:lang, :search)', {
             lang: 'indonesian',
-            search: search.split(' ').join(' & '),
+            search: search.trim().split(' ').join(' & '),
           });
         }
       })
       .orderBy('publishedAt', 'desc')
       .preload('source', query => {
-        query.select('id', 'name', 'image');
+        query.select('id', 'name', 'image', 'url');
       })
       .paginate(page, perPage);
     return data;
