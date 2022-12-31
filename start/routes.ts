@@ -31,4 +31,5 @@ Route.group(() => {
   Route.get('articles/:id', 'ArticlesController.show');
   Route.get('cities', 'CitiesController.index');
   Route.get('sholat-schedules', 'SholatSchedulesController.index');
+  Route.post('feedbacks', 'FeedbacksController.store');
 }).prefix('v1');
