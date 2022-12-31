@@ -2,6 +2,7 @@ import { beforeCreate, BelongsTo, belongsTo, column } from '@ioc:Adonis/Lucid/Or
 import CamelCaseNamingStrategy from 'App/Services/CamelCaseNamingStrategy';
 import { DateTime } from 'luxon';
 import { nanoid } from 'nanoid';
+import ArticleCategory from './ArticleCategory';
 import Model from './Model';
 import Source from './Source';
 
@@ -18,6 +19,9 @@ export default class Article extends Model {
   public image: string | null;
 
   @column()
+  public originArticleId: number;
+
+  @column()
   public sourceUrl: string;
 
   @column()
@@ -26,15 +30,26 @@ export default class Article extends Model {
   @belongsTo(() => Source)
   public source: BelongsTo<typeof Source>;
 
+  @column()
+  public articleCategoryId: number | null;
+
+  @belongsTo(() => ArticleCategory)
+  public articleCategory: BelongsTo<typeof ArticleCategory>;
+
+  @column()
+  public tags: string[] | null;
+
   @column.dateTime()
-  public publishedAt: DateTime;
+  public date: DateTime;
+
+  @column.dateTime()
+  public modified: DateTime;
 
   @column.dateTime({ autoCreate: true })
   public createdAt: DateTime;
 
   @beforeCreate()
   public static async setArticleId(article: Article) {
-    // const { nanoid } = await import('nanoid');
     article.id = nanoid(12);
   }
 }

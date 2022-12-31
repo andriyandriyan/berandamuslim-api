@@ -1,19 +1,22 @@
+/* eslint-disable @typescript-eslint/naming-convention */
 import Database from '@ioc:Adonis/Lucid/Database';
 import Article from 'App/Models/Article';
+import ArticleCategory from 'App/Models/ArticleCategory';
 import Source from 'App/Models/Source';
 import axios, { AxiosRequestConfig } from 'axios';
-import { Post } from 'interfaces';
+import { Post, WpTerm } from 'interfaces';
 import { DateTime } from 'luxon';
 
 export default class ScrapersController {
   public async articles() {
-    const perPage = 20;
+    const perPage = 10;
     const sources = await Source.query().withCount('articles');
     await Database.transaction(async trx => {
-      const promises: Promise<void>[] = [];
+      const getPosts: Promise<{ source: Source; posts: Post[] }>[] = [];
+      const storePosts: Promise<void>[] = [];
       sources.forEach(source => {
-        promises.push(
-          new Promise<void>(async (resolve, reject) => {
+        getPosts.push(
+          new Promise<{ source: Source; posts: Post[] }>(async (resolve, reject) => {
             const baseURL = `https://${source.url}`;
             const url = 'wp-json/wp/v2/posts';
             const config: AxiosRequestConfig = {
@@ -30,7 +33,7 @@ export default class ScrapersController {
             const total = headers['x-wp-total'] || 0;
             const articlesCount = source.$extras.articles_count;
             if (total === articlesCount) {
-              return resolve();
+              return resolve({ source, posts: [] });
             }
             const lastPage = Math.ceil(articlesCount / perPage);
             const mod = articlesCount % perPage;
@@ -47,28 +50,76 @@ export default class ScrapersController {
                   order: 'asc',
                   per_page: perPage,
                   page,
-                  _fields: ['id', 'title', 'modified_gmt', 'link', '_links.wp:featuredmedia'],
-                  _embed: 'wp:featuredmedia',
+                  _fields: [
+                    'id',
+                    'title',
+                    'date',
+                    'modified',
+                    'link',
+                    '_links.wp:featuredmedia',
+                    '_links.wp:term',
+                  ],
+                  _embed: 'wp:featuredmedia,wp:term',
                 },
               });
-              await Article.createMany(
-                data.slice(mod).map(datum => ({
-                  title: datum.title.rendered,
-                  image: datum._embedded?.['wp:featuredmedia'][0]?.source_url || null,
-                  sourceUrl: datum.link,
-                  publishedAt: DateTime.fromISO(datum.modified_gmt),
-                  sourceId: source.id,
-                })),
-                { client: trx }
-              );
-              resolve();
+              const posts = data.slice(mod);
+              resolve({ source, posts });
             } catch (error) {
               reject(error);
             }
           })
         );
       });
-      await Promise.all(promises);
+      const sourcePosts = await Promise.all(getPosts);
+      const categories: Pick<WpTerm, 'slug' | 'name'>[] = [];
+      sourcePosts.forEach(({ posts }) => {
+        posts.forEach(post => {
+          const { _embedded } = post;
+          const terms = _embedded?.['wp:term'].flatMap(term => term) || [];
+          const term = terms.find(term => term.taxonomy === 'category');
+          const isExist = categories.some(category => category.slug === term?.slug);
+          if (term && !isExist) {
+            categories.push({
+              slug: term.slug,
+              name: term.name,
+            });
+          }
+        });
+      });
+      const articleCategories = await ArticleCategory.fetchOrCreateMany('slug', categories, {
+        client: trx,
+      });
+      sourcePosts.forEach(({ source, posts }) => {
+        storePosts.push(
+          new Promise<void>(async resolve => {
+            await Article.createMany(
+              posts.map(post => {
+                const { _embedded } = post;
+                const terms = _embedded?.['wp:term'].flatMap(term => term) || [];
+                const category = terms.find(term => term.taxonomy === 'category');
+                const articleCategory = articleCategories.find(
+                  ({ slug }) => slug === category?.slug
+                );
+                const tags = terms.filter(term => term.taxonomy === 'post_tag');
+                return {
+                  title: post.title.rendered,
+                  image: _embedded?.['wp:featuredmedia']?.[0]?.source_url || null,
+                  originArticleId: post.id,
+                  articleCategoryId: articleCategory?.id,
+                  tags: tags.map(tag => tag.name),
+                  sourceUrl: post.link,
+                  date: DateTime.fromISO(post.date),
+                  modified: DateTime.fromISO(post.modified),
+                  sourceId: source.id,
+                };
+              }),
+              { client: trx }
+            );
+            resolve();
+          })
+        );
+      });
+      await Promise.all(storePosts);
     });
     return { message: 'success' };
   }

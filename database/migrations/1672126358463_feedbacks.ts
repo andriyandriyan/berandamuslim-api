@@ -1,16 +1,14 @@
 import BaseSchema from '@ioc:Adonis/Lucid/Schema';
 
 export default class extends BaseSchema {
-  protected tableName = 'sources';
+  protected tableName = 'feedbacks';
 
   public async up() {
     this.schema.createTable(this.tableName, table => {
       table.increments('id').primary();
-      table.string('name', 30).notNullable();
-      table.string('image', 200).nullable();
-      table.string('url', 30).notNullable();
-      table.integer('articleSourcesCount').unsigned().notNullable();
-      table.dateTime('deletedAt', { useTz: true });
+      table.string('name', 20).notNullable();
+      table.text('message').notNullable();
+      table.dateTime('createdAt', { useTz: true });
     });
   }
 

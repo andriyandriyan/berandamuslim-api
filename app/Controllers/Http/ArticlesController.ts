@@ -6,8 +6,9 @@ export default class ArticlesController {
     const search: string = request.input('search', '');
     const page = request.input('page', 1);
     const perPage = request.input('perPage', 20);
+    const category = request.input('category', '');
     const data = await Article.query()
-      .select('id', 'title', 'image', 'publishedAt', 'sourceId')
+      .select('id', 'title', 'image', 'date', 'sourceId', 'sourceUrl', 'articleCategoryId', 'tags')
       .where(query => {
         if (search) {
           query.whereRaw('fts @@ to_tsquery(:lang, :search)', {
@@ -15,11 +16,15 @@ export default class ArticlesController {
             search: search.trim().split(' ').join(' & '),
           });
         }
+        if (category) {
+          query.where('articleCategoryId', category);
+        }
       })
-      .orderBy('publishedAt', 'desc')
+      .orderBy('date', 'desc')
       .preload('source', query => {
         query.select('id', 'name', 'image', 'url');
       })
+      .preload('articleCategory')
       .paginate(page, perPage);
     return data;
   }
