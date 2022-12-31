@@ -26,6 +26,7 @@ Route.get('/', async () => {
 
 Route.group(() => {
   Route.get('scrapers/articles', 'ScrapersController.articles');
+  Route.get('article-categories', 'ArticleCategoriesController.index');
   Route.get('articles', 'ArticlesController.index');
   Route.get('articles/:id', 'ArticlesController.show');
   Route.get('cities', 'CitiesController.index');
