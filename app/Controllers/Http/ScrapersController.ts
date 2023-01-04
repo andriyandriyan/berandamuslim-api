@@ -11,6 +11,7 @@ export default class ScrapersController {
   public async articles() {
     const perPage = 10;
     const sources = await Source.query().withCount('articles');
+    process.env.NODE_TLS_REJECT_UNAUTHORIZED = '0';
     await Database.transaction(async trx => {
       const getPosts: Promise<{ source: Source; posts: Post[] }>[] = [];
       const storePosts: Promise<void>[] = [];
@@ -71,6 +72,7 @@ export default class ScrapersController {
         );
       });
       const sourcePosts = await Promise.all(getPosts);
+      process.env.NODE_TLS_REJECT_UNAUTHORIZED = '1';
       const categories: Pick<WpTerm, 'slug' | 'name'>[] = [];
       sourcePosts.forEach(({ posts }) => {
         posts.forEach(post => {
