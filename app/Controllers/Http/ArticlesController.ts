@@ -8,7 +8,17 @@ export default class ArticlesController {
     const perPage = request.input('perPage', 20);
     const category = request.input('category', '');
     const data = await Article.query()
-      .select('id', 'title', 'image', 'date', 'sourceId', 'sourceUrl', 'articleCategoryId', 'tags')
+      .select(
+        'articles.id',
+        'title',
+        'image',
+        'date',
+        'sourceId',
+        'sourceUrl',
+        'articleCategoryId',
+        'tags'
+      )
+      .leftJoin('article_categories', 'article_categories.id', 'articles.articleCategoryId')
       .where(query => {
         if (search) {
           query.whereRaw('fts @@ to_tsquery(:lang, :search)', {
@@ -17,7 +27,7 @@ export default class ArticlesController {
           });
         }
         if (category) {
-          query.where('articleCategoryId', category);
+          query.where('article_categories.slug', category);
         }
       })
       .orderBy('date', 'desc')
