@@ -103,6 +103,8 @@ export default class ScrapersController {
                   ({ slug }) => slug === category?.slug
                 );
                 const tags = terms.filter(term => term.taxonomy === 'post_tag');
+                const date = DateTime.fromISO(post.date);
+                const modified = DateTime.fromISO(post.modified);
                 return {
                   title: post.title.rendered.slice(0, 250),
                   image: _embedded?.['wp:featuredmedia']?.[0]?.source_url || null,
@@ -110,8 +112,8 @@ export default class ScrapersController {
                   articleCategoryId: articleCategory?.id,
                   tags: tags.map(tag => tag.name),
                   sourceUrl: post.link,
-                  date: DateTime.fromISO(post.date),
-                  modified: DateTime.fromISO(post.modified),
+                  date,
+                  modified: post.modified.startsWith('-0001') ? date : modified,
                   sourceId: source.id,
                 };
               }),
