@@ -104,7 +104,7 @@ export default class ScrapersController {
                 );
                 const tags = terms.filter(term => term.taxonomy === 'post_tag');
                 return {
-                  title: post.title.rendered,
+                  title: post.title.rendered.slice(0, 250),
                   image: _embedded?.['wp:featuredmedia']?.[0]?.source_url || null,
                   originArticleId: post.id,
                   articleCategoryId: articleCategory?.id,
