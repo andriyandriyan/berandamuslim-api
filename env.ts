@@ -23,4 +23,5 @@ export default Env.rules({
   NODE_ENV: Env.schema.enum(['development', 'production', 'test'] as const),
   TELEGRAM_ERROR_BOT_TOKEN: Env.schema.string(),
   TELEGRAM_CHAT_ID: Env.schema.number(),
+  YOUTUBE_API_KEY: Env.schema.string(),
 });
