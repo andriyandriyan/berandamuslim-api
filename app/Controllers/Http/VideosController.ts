@@ -6,7 +6,7 @@ export default class VideosController {
     const search: string = request.input('search', '');
     const page = request.input('page', 1);
     const perPage = request.input('perPage', 30);
-    const channelIds: string[] = request.input('channelIds', []);
+    const channelIds: string[] = request.input('channelIds', []).filter(channelId => channelId);
     const data = await Video.query()
       .select('id', 'title', 'thumbnail', 'duration', 'publishedAt', 'channelId')
       .where(query => {
@@ -16,7 +16,7 @@ export default class VideosController {
             search: search.trim().split(' ').join(' & '),
           });
         }
-        if (channelIds.length) {
+        if (channelIds && channelIds.length) {
           query.whereIn('channelId', channelIds);
         }
       })
