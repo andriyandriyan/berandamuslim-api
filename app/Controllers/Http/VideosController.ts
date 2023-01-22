@@ -26,8 +26,9 @@ export default class VideosController {
     return data;
   }
 
-  public async show({ request, response }: HttpContextContract) {
+  public async show({ request }: HttpContextContract) {
     const data = await Video.findOrFail(request.param('id'));
-    response.redirect().toPath(`https://www.youtube.com/watch?v=${data.id}`);
+    await data.load('channel');
+    return { data };
   }
 }
