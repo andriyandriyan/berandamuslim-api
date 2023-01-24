@@ -33,8 +33,10 @@ export default class ExceptionHandler extends HttpExceptionHandler {
       error.report(error, ctx);
       return;
     }
-    const token = Env.get('TELEGRAM_ERROR_BOT_TOKEN');
-    const bot = new TelegramBot(token);
-    await bot.sendMessage(Env.get('TELEGRAM_CHAT_ID'), error.stack);
+    if (Env.get('NODE_ENV') === 'production') {
+      const token = Env.get('TELEGRAM_ERROR_BOT_TOKEN');
+      const bot = new TelegramBot(token);
+      await bot.sendMessage(Env.get('TELEGRAM_CHAT_ID'), error.stack);
+    }
   }
 }
